@@ -1,0 +1,21 @@
+package com.bangkok.airReservation.service;
+
+import java.util.List;
+
+import com.bangkok.airReservation.vo.SeatReservationVO;
+import com.bangkok.airReservation.vo.SeatVO;
+
+public interface SeatService {
+	
+	 public List<SeatVO> getASeats(Long scheduleId_a);
+	 
+	 public List<SeatVO> getDSeats(Long scheduleId_d);
+	 
+	 public List<Long> seatReservedList(Long reservationNo);
+	 
+	 public Integer reservationSeat(List<SeatVO> seats, List<SeatReservationVO> reservations,  Long reservationNo);
+
+	 public Integer deleteReservedSeat(List<Long> reservedSeats, Long reservationNo);
+	 
+
+}

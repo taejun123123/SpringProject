@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  </head>
+  <body>
+    <script>
+      // 쿼리 파라미터 값이 결제 요청할 때 보낸 데이터와 동일한지 반드시 확인하세요.
+      // 클라이언트에서 결제 금액을 조작하는 행위를 방지할 수 있습니다.
+      const urlParams = new URLSearchParams(window.location.search);
+//       const checkOut = urlParams.get("checkOut");
+//       const checkIn = urlParams.get("checkIn");
+      const people = urlParams.get("people");
+      const rno = urlParams.get("rno");
+      const amount = urlParams.get("amount");
+      const paymentKey = urlParams.get("paymentKey");
+      const orderId = urlParams.get("orderId");
+      
+      function confirm() {
+        const requestData = {
+          paymentKey: paymentKey,
+          orderId: orderId,
+          amount: amount,
+//           checkOut: checkOut,
+//           checkIn: checkIn,
+          people: people,
+          rno: rno,
+        };
+		
+        $.ajax({
+          url: "/hotel_reservationsRest",
+          method: "POST",
+          contentType: "application/json",
+          data: JSON.stringify(requestData),
+          success: function (response) {
+           location.href="/hotel_reservations/list.do"
+			//console.log(response)
+          },
+          error: function (response) {
+            console.log(response.responseJSON);
+
+            // 결제 실패 비즈니스 로직을 구현하세요.
+            window.location.href =
+              "/fail?message=" +
+              response.responseJSON.message +
+              "&code=" +
+              response.responseJSON.code;
+          },
+        });
+      }
+       confirm();
+    </script>
+  </body>
+</html>

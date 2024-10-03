@@ -1,0 +1,27 @@
+package com.bangkok.info.vo;
+
+import java.sql.Date;
+import lombok.Data;
+
+@Data
+public class InfoVO {
+	
+		private Long no;
+		private String title;
+		private String content;
+		private String writer;
+		private Integer cityNum;
+		private String cityname;
+		private String countrycode;
+		private String place;
+		private Date writeDate;
+		private String imageFile;
+		private String filename;
+		private Integer cate_code1;
+		private String cate_name;
+		private Integer lat; // 위도
+		private Integer lng; // 경도
+		
+		
+
+}

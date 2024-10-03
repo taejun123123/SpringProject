@@ -1,0 +1,78 @@
+package com.bangkok.airReservation.service;
+
+import java.util.List;
+
+import javax.inject.Inject;
+
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import com.bangkok.airReservation.mapper.SeatMapper;
+import com.bangkok.airReservation.vo.SeatReservationVO;
+import com.bangkok.airReservation.vo.SeatVO;
+
+import lombok.extern.log4j.Log4j;
+
+@Service
+@Log4j
+@Qualifier("SeatServiceImpl")
+public class SeatServiceImpl implements SeatService{
+	
+	@Inject
+	private SeatMapper mapper;
+	
+	
+	
+	@Override
+	public List<Long> seatReservedList(Long reservationNo) {
+		// TODO Auto-generated method stub
+		return mapper.seatReservedList(reservationNo);
+	}
+
+	@Override
+	public Integer reservationSeat(List<SeatVO> seats, List<SeatReservationVO> reservations, Long reservationNo) {
+		
+		Integer result = 0;
+		log.info("탑승자 번호" + seats.get(0).getPassengerNo());
+		log.info("좌석 번호" + reservations.get(0).getSeatNo());
+		
+		result = mapper.insertSeatReservations(reservations, reservationNo, seats);
+
+		
+		result = mapper.updatePassengerSeats(seats);
+		
+        
+		return result;
+	}
+
+
+	@Override
+	public Integer deleteReservedSeat(List<Long> reservedSeats, Long reservationNo) {
+		// TODO Auto-generated method stub
+		
+		Integer result = 0;
+		
+		result = mapper.cancelSeatReservations(reservedSeats, reservationNo);
+		
+		result = mapper.updateSeatsOnCancellation(reservedSeats);
+		
+		return result;
+	}
+
+	@Override
+	public List<SeatVO> getASeats(Long scheduleId_a) {
+		// TODO Auto-generated method stub
+		return mapper.getASeats(scheduleId_a);
+	}
+
+	@Override
+	public List<SeatVO> getDSeats(Long scheduleId_d) {
+		// TODO Auto-generated method stub
+		return mapper.getDSeats(scheduleId_d);
+	}
+
+	
+
+
+
+}

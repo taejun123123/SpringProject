@@ -1,0 +1,304 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>예약 목록 페이지</title>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+.container {
+	max-width: 1200px;
+	width: 100%;
+	background-color: #ffffff;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+	border-radius: 12px;
+	padding: 20px;
+	animation: fadeIn 1s ease-in-out;
+	max-height: 90vh;
+	overflow-y: auto;
+}
+
+h2 {
+	font-size: 28px;
+	color: #34495e;
+	text-align: center;
+	margin-bottom: 20px;
+	font-weight: 700;
+}
+
+.reservation-list {
+	display: flex;
+	flex-direction: column;
+	gap: 20px;
+}
+
+.reservation-card {
+	background-color: #ffffff;
+	border-radius: 8px;
+	padding: 20px;
+	cursor: pointer;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+	transition: all 0.3s ease;
+	position: relative;
+	border: 1px solid #e0e0e0;
+}
+
+.reservation-card:hover {
+	transform: scale(1.03);
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.reservation-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 20px;
+	color: #2c3e50;
+	margin-bottom: 15px;
+}
+
+.highlight {
+	color: #e74c3c;
+	font-weight: bold;
+}
+
+.arrow {
+	transition: transform 0.3s ease;
+	font-size: 16px;
+}
+
+.rotate {
+	transform: rotate(180deg);
+}
+
+.info-row {
+	display: flex;
+	justify-content: space-between;
+	margin-bottom: 10px;
+}
+
+.info-row div {
+	width: 48%;
+	font-size: 14px;
+}
+
+.summary {
+	margin-top: 15px;
+	font-weight: bold;
+	color: #2980b9;
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.additional-details {
+	display: none;
+	margin-top: 20px;
+	background-color: #f8f9fa;
+	border-radius: 8px;
+	padding: 15px;
+	animation: slideDown 0.5s ease-in-out forwards;
+	font-size: 14px;
+}
+
+.additional-details p {
+	margin: 5px 0;
+}
+
+.buttons {
+	display: flex;
+	justify-content: space-between;
+	margin-top: 20px;
+}
+
+.button {
+	background-color: #003366;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 10px 20px;
+	font-size: 14px;
+	cursor: pointer;
+	transition: background-color 0.3s ease;
+}
+
+.button.refund {
+	background-color: #c0392b;
+}
+
+.button:hover {
+	background-color: #2980b9;
+}
+
+@keyframes fadeIn { 
+    0% {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes slideDown { 
+    0% {
+		max-height: 0;
+		opacity: 0;
+	}
+	100% {
+		max-height: 500px;
+		opacity: 1;
+	}
+}
+</style>
+
+<script>
+
+    // 상세보기 토글
+    function toggleDetails(card) {
+        const details = card.closest('.reservation-card').querySelector('.additional-details');
+        const arrow = card.querySelector('.arrow');
+
+        if (details.style.display === 'none' || details.style.display === '') {
+            details.style.display = 'block';
+            arrow.classList.add('rotate');
+        } else {
+            details.style.display = 'none';
+            arrow.classList.remove('rotate');
+        }
+    }
+
+    // 예약 상세보기 페이지로 이동 (토글 버튼이 아닌 카드 클릭 시 이동)
+    $(document).on('click', '.reservation-card', function(event) {
+        // arrow 요소가 클릭된 경우에는 이동하지 않도록 막음
+        if (!$(event.target).closest('.arrow').length && !$(event.target).closest('.button.refund').length) {
+            const reservationNo = $(this).find('.reservationNo').val();
+            location = "view.do?reservationNo=" + reservationNo;
+        }
+    });
+
+    // 환불 버튼 클릭 시 상세보기 이동 방지 및 모달에 예약 번호 설정
+    $(document).on('click', '.button.refund', function(event) {
+        event.stopPropagation(); // 이벤트 전파 중지
+        const card = $(this).closest('.reservation-card');
+        const reservationNo = card.find('.reservationNo').val(); // 예약 번호 가져오기
+        $('#modalReservationNo').val(reservationNo); // 모달에 예약 번호 설정
+    });
+
+    // 환불 버튼 클릭 시 상세보기 이동 방지 및 토글 기능 호출
+    $(document).on('click', '.button.refund', function(event) {
+        event.stopPropagation(); // 이벤트 전파 중지
+        const card = $(this).closest('.reservation-card');
+        const arrow = card.find('.arrow')[0];
+        toggleDetails(arrow); // 토글 기능 호출
+    });
+</script>
+
+
+</head>
+<body>
+
+	<div class="container">
+		<h2>예약 목록</h2>
+		<div class="reservation-list">
+
+			<!-- 예약 카드 목록 -->
+			<c:forEach items="${list }" var="vo" varStatus="status">
+				<div class="reservation-card">
+					<input type="hidden" class="reservationNo" value="${vo.reservationNo }">
+
+					<div class="reservation-header">
+						<h2>
+							<span class="highlight">${vo.email }</span>님의 예약번호는 
+							<span class="highlight">${vo.reservationLabel }</span>입니다.
+						</h2>
+						<div class="arrow" onclick="toggleDetails(this)">▼</div>
+					</div>
+					<div class="info-row">
+						<div><span>출발:</span> ${vo.departure }</div>
+						<div><span>도착:</span> ${vo.arrival }</div>
+					</div>
+					<div class="info-row">
+						<div><span>항공사:</span> ${vo.flightName }</div>
+					</div>
+					<div class="info-row">
+						<div><span>출발날짜:</span> ${vo.departureTime }</div>
+						<div><span>도착날짜:</span> ${vo.arrivalTime }</div>
+					</div>
+					<div class="summary">총 결제 금액: ${vo.total_Price }원</div>
+					<div class="buttons">
+						<button class="button refund" data-toggle="modal" data-target="#deleteModal">환불</button>
+					</div>
+					<div class="additional-details">
+						<p><strong>출발:</strong> ${vo.departure }</p>
+						<p><strong>도착:</strong> ${vo.arrival }</p>
+						<p><strong>항공사:</strong> ${vo.flightName }</p>
+						<p><strong>왕복 / 편도:</strong> ${vo.type }</p>
+						<p><strong>상태:</strong> ${vo.status }</p>
+						<c:if test="${vo.classNo == 1 }">
+							<p><strong>좌석 등급:</strong> 일반석
+						</c:if>
+						<c:if test="${vo.classNo == 2 }">
+							<p><strong>좌석 등급:</strong> 비즈니스석
+						</c:if>
+						<c:if test="${vo.classNo == 3 }">
+							<p><strong>좌석 등급:</strong> 일등석
+						</c:if>
+						
+						<c:if test="${vo.seatID == null || vo.seatID == ''}">
+						    <p><strong>좌석 ID:</strong></p><p style="color:red;">좌석을 예약해주세요!</p>
+						</c:if>
+						<c:if test="${vo.seatID != null && vo.seatID != ''}">
+						    <p><strong>좌석 ID:</strong> ${vo.seatID}</p>
+						</c:if>
+
+						
+						<p><strong>성인 탑승객 수:</strong> ${vo.adult_count }</p>
+						<p><strong>소아 탑승객 수:</strong> ${vo.child_count }</p>
+						<p><strong>유아 탑승객 수:</strong> ${vo.infant_count }</p>
+
+					</div>
+				</div>
+			</c:forEach>
+		</div>
+	</div>
+
+	<!-- 예약 취소 모달 -->
+	<div class="modal fade" id="deleteModal">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<!-- Modal Header -->
+				<div class="modal-header">
+					<h4 class="modal-title">예약을 취소하려면 예약번호를 입력 해주세요.</h4>
+					<button type="button" class="close" data-dismiss="modal">&times;</button>
+				</div>
+				
+
+				<form action="delete.do" method="post">
+				    <div class="modal-body">
+				        <c:forEach items="${reservedSeat}" var="vo" varStatus="status">
+				            <input type="hidden" name="seatNo" value="${vo}"> <!-- 좌석 번호 전송 -->
+				        </c:forEach>
+				        
+				        <input type="hidden" name="reservationNo" id="modalReservationNo">
+				        <div class="form-group">
+				            <input class="form-control" name="reservationLabel" type="text" id="reservationLabel" placeholder="예약 번호를 입력하세요.">
+				        </div>
+				    </div>
+				    <div class="modal-footer">
+				        <button class="btn btn-danger">예약 취소</button>
+				        <button type="button" class="button" data-dismiss="modal">취소</button>
+				    </div>
+				</form>
+
+			</div>
+		</div>
+	</div>
+
+</body>
+</html>
